@@ -10,9 +10,35 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    static let placeholderURL = "https://jsonplaceholder.typicode.com"
+
+    let toDoManager = AnyManager(service: AnyService<ToDoItem>(url: ViewController.placeholderURL))
+    let postsManager = AnyManager(service: AnyService<Post>(url: ViewController.placeholderURL))
+
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        toDoManager.get(4) { result in
+            switch result {
+            case .success(let todo):
+                print(todo.title)
+            case .failure(let error):
+                print(error)
+            }
+        }
+
+        postsManager.get(7) { result in
+            switch result {
+            case .success(let post):
+                print("\(post.title) - \(post.body)")
+            case .failure(let error):
+                print(error)
+            }
+        }
+
+
     }
 
     override func didReceiveMemoryWarning() {
