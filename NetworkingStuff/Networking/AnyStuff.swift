@@ -8,6 +8,12 @@
 
 import Foundation
 
+class AnyResponseWrapper<O: Resource & Codable>: ResponseWrapper {
+    var contents: [O] = []
+
+    required init() { }
+}
+
 class AnyService<O: Resource & Codable>: Service {
     var baseURL: URL
     typealias ObjectId = O.ObjectId
@@ -24,6 +30,8 @@ class AnyService<O: Resource & Codable>: Service {
 class AnyManager<O: Resource & Codable>: Manager {
     var memo: [O.ObjectId : O] = [:]
     var service: AnyService<O>
+
+    typealias Wrapper = AnyResponseWrapper<O>
 
     static func createManager(for type: O.Type, with baseURL: String) -> AnyManager<O> {
         return AnyManager(service: AnyService<O>(url: baseURL))

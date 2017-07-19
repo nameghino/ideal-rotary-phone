@@ -22,8 +22,8 @@ class ViewController: UIViewController {
 
         toDoManager.get(byId: 4) { result in
             switch result {
-            case .success(let todo):
-                print(todo.title)
+            case .success(let wrapper):
+                print(wrapper.contents.first!.title)
             case .failure(let error):
                 print(error)
             }
@@ -31,8 +31,8 @@ class ViewController: UIViewController {
 
         postsManager.get(byId: 7) { result in
             switch result {
-            case .success(let post):
-                print("\(post.title) - \(post.body)")
+            case .success(let wrapper):
+                print(wrapper.contents.first!.title)
             case .failure(let error):
                 print(error)
             }

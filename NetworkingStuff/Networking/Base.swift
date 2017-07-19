@@ -34,13 +34,34 @@ extension Resource {
     }
 }
 
+protocol ResponseWrapper {
+    associatedtype Value where Value: Codable & Resource
+    var contents: [Value] { get set }
+
+    init()
+    init(_ contents: [Value])
+    init(_ value: Value)
+}
+
+extension ResponseWrapper {
+    init(_ contents: [Value]) {
+        self.init()
+        self.contents = contents
+    }
+
+    init(_ value: Value) {
+        self.init()
+        self.contents = [value]
+    }
+}
+
 enum ServiceError: Error {
     case noDataReceived
 }
 
 protocol Service {
     associatedtype ObjectId where ObjectId == Value.ObjectId
-    associatedtype Value where Value: Codable, Value: Resource
+    associatedtype Value where Value: Codable & Resource
 
     var baseURL: URL { get set }
 
@@ -51,7 +72,7 @@ protocol Service {
     func delete(id: ObjectId) -> URLRequest
     func post(object: Value) -> URLRequest
 
-    func sendRequest(request: URLRequest, callback: @escaping (Result<Value>) -> Void)
+    func sendRequest<R: ResponseWrapper>(request: URLRequest, callback: @escaping (Result<R>) -> Void)
 }
 
 extension Service {
@@ -101,7 +122,7 @@ extension Service {
         return request(withMethod: "POST", for: object)
     }
 
-    func sendRequest(request: URLRequest, callback: @escaping (Result<Value>) -> Void) {
+    func sendRequest<R: ResponseWrapper>(request: URLRequest, callback: @escaping (Result<R>) -> Void) {
         print("[outbound] \(request.url!)")
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             guard error == nil else {
@@ -115,8 +136,9 @@ extension Service {
 
             do {
                 let decoder = JSONDecoder()
-                let object = try decoder.decode(Value.self, from: data)
-                callback(.success(object))
+                let object = try decoder.decode(R.Value.self, from: data)
+                let wrapper = R(object)
+                callback(.success(wrapper))
             } catch (let error) {
                 callback(.failure(error))
             }
@@ -129,23 +151,24 @@ protocol Manager {
     associatedtype ServiceOfValue: Service
     associatedtype ObjectId where ObjectId == ServiceOfValue.ObjectId
     associatedtype Value where Value == ServiceOfValue.Value
+    associatedtype Wrapper where Wrapper: ResponseWrapper, Wrapper.Value == ServiceOfValue.Value
 
     var service: ServiceOfValue { get set }
 
     var memo: [ObjectId : Value] { get set }
-    func create(object: Value, callback: @escaping(Result<Value>) -> Void)
-    func get(byId id: ObjectId, ignoreCache: Bool, callback: @escaping(Result<Value>) -> Void)
-    func update(object: Value, callback: @escaping(Result<Bool>) -> Void)
-    func delete(byId id: ObjectId, callback: @escaping(Result<Bool>) -> Void)
+    func create(object: Value, callback: @escaping(Result<Wrapper>) -> Void)
+    func get(byId id: ObjectId, ignoreCache: Bool, callback: @escaping(Result<Wrapper>) -> Void)
+    func update(object: Value, callback: @escaping(Result<Wrapper>) -> Void)
+    func delete(byId id: ObjectId, callback: @escaping(Result<Wrapper>) -> Void)
 }
 
 extension Manager {
-    func create(object: Value, callback: @escaping(Result<Value>) -> Void) {
+    func create(object: Value, callback: @escaping(Result<Wrapper>) -> Void) {
         let r = service.post(object: object)
         service.sendRequest(request: r, callback: callback)
     }
     
-    func get(byId id: ObjectId, ignoreCache: Bool = false, callback: @escaping(Result<Value>) -> Void) {
+    func get(byId id: ObjectId, ignoreCache: Bool = false, callback: @escaping(Result<Wrapper>) -> Void) {
 
         // get caching right here. -n
         /*
@@ -159,9 +182,9 @@ extension Manager {
         service.sendRequest(request: r, callback: callback)
     }
 
-    func update(object: Value, callback: @escaping(Result<Bool>) -> Void) {
+    func update(object: Value, callback: @escaping(Result<Wrapper>) -> Void) {
     }
 
-    func delete(byId id: ObjectId, callback: @escaping(Result<Bool>) -> Void) {
+    func delete(byId id: ObjectId, callback: @escaping(Result<Wrapper>) -> Void) {
     }
 }
