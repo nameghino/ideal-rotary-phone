@@ -20,24 +20,6 @@ enum Result<T> {
     }
 }
 
-protocol Request {
-    var body: Data? { get set }
-}
-
-extension URLRequest: Request {
-    var body: Data? {
-        get {
-            guard let data = httpBody else { return nil }
-            return data
-        }
-
-        set {
-            guard let data = try? JSONSerialization.data(withJSONObject: body as Any, options: []) else { fatalError() }
-            httpBody = data
-        }
-    }
-}
-
 protocol Resource {
     associatedtype ObjectId: Hashable
 
