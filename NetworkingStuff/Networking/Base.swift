@@ -62,12 +62,12 @@ protocol Service {
 
     var baseURL: URL { get set }
 
-    func createGetAllRequest() -> URLRequest
-    func createGetRequest(for id: ObjectId) -> URLRequest
-    func createPutRequest(for object: Value) -> URLRequest
-    func createDeleteRequest(for object: Value) -> URLRequest
-    func createDeleteRequest(for id: ObjectId) -> URLRequest
-    func createPostRequest(for object: Value) -> URLRequest
+    func getAll() -> URLRequest
+    func get(id: ObjectId) -> URLRequest
+    func put(object: Value) -> URLRequest
+    func delete(object: Value) -> URLRequest
+    func delete(id: ObjectId) -> URLRequest
+    func post(object: Value) -> URLRequest
 
     func sendRequest(request: URLRequest, callback: @escaping (Result<Value>) -> Void)
 }
@@ -95,27 +95,27 @@ extension Service {
         return request
     }
 
-    func createGetAllRequest() -> URLRequest {
+    func getAll() -> URLRequest {
         return request(withMethod: "GET", path: Value.Path)
     }
 
-    func createGetRequest(for id: ObjectId) -> URLRequest {
+    func get(id: ObjectId) -> URLRequest {
         return request(withMethod: "GET", path: Value.Path + "/\(id)")
     }
 
-    func createPutRequest(for object: Value) -> URLRequest {
+    func put(object: Value) -> URLRequest {
         return request(withMethod: "PUT", for: object)
     }
 
-    func createDeleteRequest(for object: Value) -> URLRequest {
-        return createDeleteRequest(for: object.id)
+    func delete(object: Value) -> URLRequest {
+        return delete(id: object.id)
     }
 
-    func createDeleteRequest(for id: ObjectId) -> URLRequest {
+    func delete(id: ObjectId) -> URLRequest {
         return request(withMethod: "DELETE", path: Value.Path + "/\(id)")
     }
 
-    func createPostRequest(for object: Value) -> URLRequest {
+    func post(object: Value) -> URLRequest {
         return request(withMethod: "POST", for: object)
     }
 
@@ -158,7 +158,10 @@ protocol Manager {
 }
 
 extension Manager {
-    func create(_ object: Value, callback: @escaping(Result<Value>) -> Void) { }
+    func create(_ object: Value, callback: @escaping(Result<Value>) -> Void) {
+        let r = service.post(object: object)
+        service.sendRequest(request: r, callback: callback)
+    }
     
     func get(_ id: ObjectId, ignoreCache: Bool = false, callback: @escaping(Result<Value>) -> Void) {
 
@@ -170,10 +173,13 @@ extension Manager {
          }
          */
 
-        let r = service.createGetRequest(for: id)
+        let r = service.get(id: id)
         service.sendRequest(request: r, callback: callback)
     }
 
-    func update(object: Value, callback: @escaping(Result<Bool>) -> Void) { }
-    func delete(_ id: ObjectId, callback: @escaping(Result<Bool>) -> Void) { }
+    func update(object: Value, callback: @escaping(Result<Bool>) -> Void) {
+    }
+
+    func delete(_ id: ObjectId, callback: @escaping(Result<Bool>) -> Void) {
+    }
 }
