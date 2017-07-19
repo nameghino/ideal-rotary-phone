@@ -151,19 +151,19 @@ protocol Manager {
     var service: ServiceOfValue { get set }
 
     var memo: [ObjectId : Value] { get set }
-    func create(_ object: Value, callback: @escaping(Result<Value>) -> Void)
-    func get(_ id: ObjectId, ignoreCache: Bool, callback: @escaping(Result<Value>) -> Void)
+    func create(object: Value, callback: @escaping(Result<Value>) -> Void)
+    func get(byId id: ObjectId, ignoreCache: Bool, callback: @escaping(Result<Value>) -> Void)
     func update(object: Value, callback: @escaping(Result<Bool>) -> Void)
-    func delete(_ id: ObjectId, callback: @escaping(Result<Bool>) -> Void)
+    func delete(byId id: ObjectId, callback: @escaping(Result<Bool>) -> Void)
 }
 
 extension Manager {
-    func create(_ object: Value, callback: @escaping(Result<Value>) -> Void) {
+    func create(object: Value, callback: @escaping(Result<Value>) -> Void) {
         let r = service.post(object: object)
         service.sendRequest(request: r, callback: callback)
     }
     
-    func get(_ id: ObjectId, ignoreCache: Bool = false, callback: @escaping(Result<Value>) -> Void) {
+    func get(byId id: ObjectId, ignoreCache: Bool = false, callback: @escaping(Result<Value>) -> Void) {
 
         // get caching right here. -n
         /*
@@ -180,6 +180,6 @@ extension Manager {
     func update(object: Value, callback: @escaping(Result<Bool>) -> Void) {
     }
 
-    func delete(_ id: ObjectId, callback: @escaping(Result<Bool>) -> Void) {
+    func delete(byId id: ObjectId, callback: @escaping(Result<Bool>) -> Void) {
     }
 }

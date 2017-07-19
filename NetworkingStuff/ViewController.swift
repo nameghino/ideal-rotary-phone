@@ -20,7 +20,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        toDoManager.get(4) { result in
+        toDoManager.get(byId: 4) { result in
             switch result {
             case .success(let todo):
                 print(todo.title)
@@ -29,7 +29,7 @@ class ViewController: UIViewController {
             }
         }
 
-        postsManager.get(7) { result in
+        postsManager.get(byId: 7) { result in
             switch result {
             case .success(let post):
                 print("\(post.title) - \(post.body)")
