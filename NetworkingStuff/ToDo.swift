@@ -25,10 +25,5 @@ struct ToDoItem: Codable {
 }
 
 extension ToDoItem: Resource {
-
     static var path: String = "todos"
-
-    var resourcePath: String {
-        return "\(path)/\(id)"
-    }
 }
