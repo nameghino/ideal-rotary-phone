@@ -23,14 +23,14 @@ enum Result<T> {
 protocol Resource {
     associatedtype ObjectId: Hashable
 
-    static var Path: String { get }
+    static var path: String { get }
     var id: ObjectId { get }
-    var path: String { get }
+    var resourcePath: String { get }
 }
 
 extension Resource {
     var path: String {
-        return "\(Self.Path)/\(id)"
+        return "\(Self.path)/\(id)"
     }
 }
 
@@ -99,11 +99,11 @@ extension Service {
     }
 
     func getAll() -> URLRequest {
-        return request(withMethod: "GET", path: Value.Path)
+        return request(withMethod: "GET", path: Value.path)
     }
 
     func get(id: ObjectId) -> URLRequest {
-        return request(withMethod: "GET", path: Value.Path + "/\(id)")
+        return request(withMethod: "GET", path: Value.path + "/\(id)")
     }
 
     func put(object: Value) -> URLRequest {
@@ -115,7 +115,7 @@ extension Service {
     }
 
     func delete(id: ObjectId) -> URLRequest {
-        return request(withMethod: "DELETE", path: Value.Path + "/\(id)")
+        return request(withMethod: "DELETE", path: Value.path + "/\(id)")
     }
 
     func post(object: Value) -> URLRequest {

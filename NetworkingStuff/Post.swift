@@ -26,9 +26,9 @@ struct Post: Codable {
 
 extension Post: Resource {
 
-    static var Path: String = "posts"
+    static var path: String = "posts"
 
-    var path: String {
-        return "posts/\(id)"
+    var resourcePath: String {
+        return "\(path)/\(id)"
     }
 }
