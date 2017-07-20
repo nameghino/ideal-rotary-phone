@@ -10,7 +10,6 @@ import Foundation
 
 class AnyResponseWrapper<O: Resource & Codable>: ResponseWrapper {
     var contents: [O] = []
-
     required init() { }
 }
 
@@ -27,17 +26,18 @@ class AnyService<O: Resource & Codable>: Service {
     }
 }
 
-class AnyManager<O: Resource & Codable>: Manager {
+class AnyManager<O, S: Service>: Manager where O == S.Value {
     var memo: [O.ObjectId : O] = [:]
-    var service: AnyService<O>
+    var service: S
 
     typealias Wrapper = AnyResponseWrapper<O>
 
-    static func createManager(for type: O.Type, with baseURL: String) -> AnyManager<O> {
-        return AnyManager(service: AnyService<O>(url: baseURL))
+    static func createManager(for type: O.Type, with baseURL: String) -> AnyManager<O, AnyService<O>> {
+        let s = AnyService<O>(url: baseURL)
+        return AnyManager<O, AnyService<O>>(service: s)
     }
 
-    init(service: AnyService<O>) {
+    init(service: S) {
         self.service = service
     }
 }
