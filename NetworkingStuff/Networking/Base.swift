@@ -29,12 +29,12 @@ protocol Resource {
 }
 
 extension Resource {
-    var path: String {
+    var resourcePath: String {
         return "\(Self.path)/\(id)"
     }
 }
 
-protocol ResponseWrapper {
+protocol ResponseWrapper: Codable {
     associatedtype Value where Value: Codable & Resource
     var contents: [Value] { get set }
 
@@ -65,6 +65,7 @@ protocol Service {
 
     var baseURL: URL { get set }
 
+    // Convenience methods for automatically querying a REST api
     func getAll() -> URLRequest
     func get(id: ObjectId) -> URLRequest
     func put(object: Value) -> URLRequest
@@ -72,29 +73,51 @@ protocol Service {
     func delete(id: ObjectId) -> URLRequest
     func post(object: Value) -> URLRequest
 
+    // If more customization is required
+    func get(endpoint: String, headers: [String : String]?, query: [String : String]?) -> URLRequest
+    func delete(endpoint: String, headers: [String : String]?, query: [String : String]?) -> URLRequest
+    func post(endpoint: String, data: Data?, headers: [String : String]?, query: [String : String]?) -> URLRequest
+    func put(endpoint: String, data: Data?, headers: [String : String]?, query: [String : String]?) -> URLRequest
+
+    func configure(request: inout URLRequest)
+
     func sendRequest<R: ResponseWrapper>(request: URLRequest, callback: @escaping (Result<R>) -> Void)
 }
 
 extension Service {
 
-//    init(url: String) {
-//        self.init(url: URL(string: url)!)
-//    }
-//
-//    init(url: URL) {
-//        self.init(url: url)
-//        self.baseURL = url
-//    }
+    //    init(url: String) {
+    //        self.init(url: URL(string: url)!)
+    //    }
+    //
+    //    init(url: URL) {
+    //        self.init(url: url)
+    //        self.baseURL = url
+    //    }
 
     private func request(withMethod method: String, for value: Value) -> URLRequest {
         let encoder = JSONEncoder()
-        return request(withMethod: method, path: value.path, body: try? encoder.encode(value))
+        return request(withMethod: method, path: value.resourcePath, body: try? encoder.encode(value))
     }
 
-    private func request(withMethod method: String, path appendedPath: String, body: Data? = nil) -> URLRequest {
-        let url = baseURL.appendingPathComponent(appendedPath)
+    private func request(withMethod method: String, path appendedPath: String, body: Data? = nil, headers: [String : String]? = nil, query: [String : String]? = nil) -> URLRequest {
+
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(appendedPath), resolvingAgainstBaseURL: false) else { fatalError() }
+        if let query = query {
+            components.queryItems = query.map { t in return URLQueryItem(name: t.key, value: t.value) }
+        }
+
+        guard let url = components.url else { fatalError() }
+
         var request = URLRequest(url: url)
         request.httpMethod = method
+        request.httpBody = body
+
+        if let headers = headers {
+            for (field, value) in headers {
+                request.addValue(value, forHTTPHeaderField: field)
+            }
+        }
         return request
     }
 
@@ -122,9 +145,30 @@ extension Service {
         return request(withMethod: "POST", for: object)
     }
 
+    // Methods for custom service calls
+    func get(endpoint: String, headers: [String : String]? = nil, query: [String : String]? = nil) -> URLRequest {
+        return request(withMethod: "GET", path: endpoint, body: nil, headers: headers, query: query)
+    }
+
+    func delete(endpoint: String, headers: [String : String]? = nil, query: [String : String]? = nil) -> URLRequest {
+        return request(withMethod: "DELETE", path: endpoint, body: nil, headers: headers, query: query)
+    }
+
+    func post(endpoint: String, data: Data? = nil, headers: [String : String]? = nil, query: [String : String]? = nil) -> URLRequest {
+        return request(withMethod: "POST", path: endpoint, body: data, headers: headers, query: query)
+    }
+
+    func put(endpoint: String, data: Data? = nil, headers: [String : String]? = nil, query: [String : String]? = nil)-> URLRequest {
+        return request(withMethod: "PUT", path: endpoint, body: data, headers: headers, query: query)
+    }
+
+    func configure(request: inout URLRequest) { }
+
     func sendRequest<R: ResponseWrapper>(request: URLRequest, callback: @escaping (Result<R>) -> Void) {
-        print("[outbound] \(request.url!)")
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+        var configuredRequest = request
+        configure(request: &configuredRequest)
+        print("[outbound] \(configuredRequest.url!)")
+        let task = URLSession.shared.dataTask(with: configuredRequest) { (data, response, error) in
             guard error == nil else {
                 callback(.failure(error!))
                 return
@@ -136,11 +180,31 @@ extension Service {
 
             do {
                 let decoder = JSONDecoder()
-                let object = try decoder.decode(R.Value.self, from: data)
-                let wrapper = R(object)
-                callback(.success(wrapper))
-            } catch (let error) {
-                callback(.failure(error))
+
+                // base object is either:
+                // - a dictionary, but that holds an R
+                // If that fails spectacularly, then we're left with either:
+                // -- a dictionary, perform decoding using R.Value
+                // -- an array, perform decoding using an array of R.Value instead
+
+                callback(.success(try decoder.decode(R.self, from: data)))
+                return
+            } catch {
+                do {
+                    let decoder = JSONDecoder()
+                    var contents: [R.Value] = []
+                    if let _ = try JSONSerialization.jsonObject(with: data, options: []) as? Array<Any> {
+                        contents = try decoder.decode(Array<R.Value>.self, from: data)
+                    } else {
+                        let object = try decoder.decode(R.Value.self, from: data)
+                        contents.append(object)
+                    }
+
+                    let wrapper = R(contents)
+                    callback(.success(wrapper))
+                } catch (let error) {
+                    callback(.failure(error))
+                }
             }
         }
         task.resume()
@@ -158,6 +222,7 @@ protocol Manager {
     var memo: [ObjectId : Value] { get set }
     func create(object: Value, callback: @escaping(Result<Wrapper>) -> Void)
     func get(byId id: ObjectId, ignoreCache: Bool, callback: @escaping(Result<Wrapper>) -> Void)
+    func getAll(ignoreCache: Bool, callback: @escaping(Result<Wrapper>) -> Void)
     func update(object: Value, callback: @escaping(Result<Wrapper>) -> Void)
     func delete(byId id: ObjectId, callback: @escaping(Result<Wrapper>) -> Void)
 }
@@ -179,6 +244,11 @@ extension Manager {
          */
 
         let r = service.get(id: id)
+        service.sendRequest(request: r, callback: callback)
+    }
+
+    func getAll(ignoreCache: Bool = false, callback: @escaping(Result<Wrapper>) -> Void) {
+        let r = service.getAll()
         service.sendRequest(request: r, callback: callback)
     }
 
