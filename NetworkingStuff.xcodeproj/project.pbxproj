@@ -16,6 +16,7 @@
 		35E799731F1DC32C008C1848 /* ToDo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E799721F1DC32C008C1848 /* ToDo.swift */; };
 		35E799751F1DD222008C1848 /* AnyStuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E799741F1DD222008C1848 /* AnyStuff.swift */; };
 		35E799771F1DD23B008C1848 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E799761F1DD23B008C1848 /* Post.swift */; };
+		35E799791F2059EF008C1848 /* Movie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E799781F2059EF008C1848 /* Movie.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		35E799721F1DC32C008C1848 /* ToDo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDo.swift; sourceTree = "<group>"; };
 		35E799741F1DD222008C1848 /* AnyStuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyStuff.swift; sourceTree = "<group>"; };
 		35E799761F1DD23B008C1848 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
+		35E799781F2059EF008C1848 /* Movie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Movie.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +73,7 @@
 				35E799691F1DA1DA008C1848 /* Info.plist */,
 				35E799721F1DC32C008C1848 /* ToDo.swift */,
 				35E799761F1DD23B008C1848 /* Post.swift */,
+				35E799781F2059EF008C1848 /* Movie.swift */,
 			);
 			path = NetworkingStuff;
 			sourceTree = "<group>";
@@ -155,6 +158,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				35E799791F2059EF008C1848 /* Movie.swift in Sources */,
 				35E799711F1DA205008C1848 /* Base.swift in Sources */,
 				35E799731F1DC32C008C1848 /* ToDo.swift in Sources */,
 				35E799751F1DD222008C1848 /* AnyStuff.swift in Sources */,
@@ -206,6 +210,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
@@ -261,6 +267,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
@@ -336,6 +344,7 @@
 				35E7996E1F1DA1DA008C1848 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
